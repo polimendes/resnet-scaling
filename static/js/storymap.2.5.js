@@ -42,6 +42,7 @@
             scrolldown: true,
             progressline: true,
             mapinteraction: false,
+            layercontrol: true,
             createMap: function () {
                 var map = L.map($('.storymap-map')[0], {zoomControl: false}).setView([44, -120], 7);
                 // L.tileLayer('http://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}@2x.png').addTo(map);
@@ -145,7 +146,6 @@
             var currentLayerGroup = L.layerGroup().addTo(map);
             var nav = $("nav");
 
-
             if (settings.baselayer) {
                 // add an base map, which can be either OSM, mapbox, tilelayer, wmslayer or those designed by yourself.
                 settings.baselayer.layer.addTo(map);
@@ -153,8 +153,11 @@
 
             if (settings.legend) {
                 $(".storymap").append("<div class='storymap-legend' />")
+                // $(".leaflet-bottom").prepend("<div class='storymap-legend' />")
             }
 
+
+            
             if (settings.scrolldown) {
                 $(".storymap").append("<div class='zoomIn infinite material-icons d-flex fixed-bottom mb-5 storymap-scroll-down'>keyboard_arrow_down</div>")
             }
@@ -299,12 +302,66 @@
 
             });
 
+            var layerControl = L.control.layers(null,null,
+                {collapsed:false});
+
             function showMap(key) {
 
                 currentLayerGroup.clearLayers();
 
                 var scene = scenes[key];
                 var legendContent = "";
+
+                // var layerControl = L.control.layers(null,null,
+                //     {collapsed:false})
+
+                console.log(scene.layercontrol)
+                console.log(settings.layercontrol)
+                layerControl = L.control.layers(null,null,
+                    {collapsed:false, position:'bottomright'});
+                layerControl.addTo(map)
+
+                if (settings.layercontrol && scene.layercontrol) {
+                    // if(typeof layerControl == "undefined") {
+                        // console.log("added")
+                        // layerControl = L.control.layers(null,null,
+                        //     {collapsed:false}).addTo(map);
+                    // }
+
+                    for (var i = 0; i < scene.layers.length; i++) {
+                        lyr = scene.layers[i]
+                        // if(!lyr.toggle) {
+                            console.log(lyr.name)
+
+                        if(lyr.toggle === "false") {
+                            // if(lyr.toggle !== "undefined" && lyr.toggle===) {
+                                console.log("layer not toggleable")
+                        } else {
+                            console.log("layers added")
+                            // console.log(lyr)
+                            // console.log(lyr.name)
+                            layer_title = lyr.name
+                            if(lyr.title !== "undefined") {
+                                layer_title = lyr.title
+                            }
+                            layerControl.addOverlay(lyr.layer, layer_title);
+                        }
+                        console.log(lyr.active)
+
+                        if(lyr.active === "false") {
+                            console.log("hide layer")
+                            // scene.layers[i].remove()
+                            map.removeLayer(lyr.layer)
+                        }
+
+                    }
+
+                } else {
+                    console.log("removed")
+                    if(typeof layerControl !== "undefined") {
+                        layerControl.remove()
+                    }
+                }
 
                 if (typeof $("section[data-scene='" + key + "']").data("background") !== 'undefined') {
 
@@ -314,7 +371,10 @@
 
                     for (var i = 0; i < scene.layers.length; i++) {
                         $(".storymap-loader").fadeTo(0, 1);
-                        currentLayerGroup.addLayer(scene.layers[i].layer);
+
+                        if(scene.layers[i].active !== "false"){
+                            currentLayerGroup.addLayer(scene.layers[i].layer);
+                        }
 
                         if (typeof scene.layers[i].legend !== 'undefined') {
                             legendContent += scene.layers[i].legend;
@@ -411,6 +471,8 @@
                     scrollDown
                         .removeClass("animated");
                 }
+                
+                map.removeControl(layerControl)
 
                 showMap($(this).data('scene'));
 

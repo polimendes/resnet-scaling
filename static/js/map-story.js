@@ -54,6 +54,10 @@ var MapZ = {
             layers[$(this).attr("layer-name")] = {
                 layer: layer,
                 legend: $(this).attr("legend"),
+                name: $(this).attr("layer-name"),
+                title: $(this).attr("title"),
+                active: $(this).attr("active"),
+                toggle: $(this).attr("toggle"),
             }
         })
 
@@ -72,16 +76,19 @@ var MapZ = {
             var lng=parseFloat($(this).attr("lng"))
             zoom=parseInt($(this).attr("zoom"))
             eval('var fn = function(){'+$(this).attr("init-js")+'}')
+
+            var layercontrol=$(this).attr("layercontrol")
+
             scenes[$(this).attr("data-scene")] = {
                 lat: lat,
                 lng: lng,
                 zoom: zoom,
                 layers: lyr,
                 name: $(this).attr("data-scene"),
+                layercontrol: layercontrol,
                 script: fn,
             }
         })
-
         $('#storymap').storymap({
             scenes: scenes,
             baselayer: layers[baselayer],
@@ -95,12 +102,14 @@ var MapZ = {
             navwidget: false,
             navbar: false,
             mapinteraction: true,
+            layercontrol: true,
             createMap: function () {
-                map = L.map($(".storymap-map")[0], {zoomControl: false}).setView([45, -73], 1);
+                map = L.map($(".storymap-map")[0], {zoomControl: false}).setView([53, -91], 5);
                 basemap = this.baselayer.layer.addTo(map);
                 L.control.zoom({
                     position: 'bottomright'
                 }).addTo(map);
+                // L.control.layers(baseMaps, overlayMaps).addTo(map);
                 return map;
             }
         });
